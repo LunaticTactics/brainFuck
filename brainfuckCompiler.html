@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <style>
+        textarea {
+            resize: none;
+        }
+    </style>
+    <label for="inputBF">Input BrainF*ck</label>
+    <br>
+    <textarea id="inputBF" rows="25" cols="50"></textarea>
+    <br>
+    <label for="userInput">UserInput</label>
+    <textarea id="userInput" rows="1" cols = "50"></textarea>
+    <br>
+    <br>
+    <button id="compile">Compile</button>
+    <br>
+    <br>
+    <label for="outputBF">Output Text</label>
+    <br>
+    <textarea id="outputBF" rows="25" cols="50" readonly></textarea>
+
+    <script>
+        var inputBF = document.getElementById("inputBF");
+        var inputUser = document.getElementById("userInput");
+        var outputBF = document.getElementById("outputBF");
+        var compileCode = document.getElementById("compile");
+
+        function bfLoop(beg, code, bPos, bytes, out, inPos, userIn) {
+
+            for (let i = beg + 1; i < code.length; i++) {
+
+                switch (code[i]) {
+
+                    case "<":
+                        if (bPos) {
+                            bPos--;
+                        }
+                        else {
+                            console.log("Pos can't be under 0...");
+                        }
+                        break;
+                    case ">":
+                        bPos++;
+                        if (bPos === bytes.length) {
+                            bytes.push(0);
+                        }
+                        break;
+                    case "+":
+                        bytes[bPos]++;
+                        bytes[bPos] %= 256;
+                        break;
+                    case "-":
+                        if (bytes[bPos]) {
+                            bytes[bPos]--;
+                        }
+                        else {
+                            bytes[bPos] = 255;
+                        }
+                        break;
+                    case ".":
+                        tempOut.push(String.fromCharCode(bytes[bPos]));
+                        break;
+                    case ",":
+                        if (inPos === userIn.length) {
+                            console.log("Not enough inputs...");
+                            return;
+                        }
+                        bytes[bPos] = userIn[inPos].charCodeAt(0);
+                        inPos++;
+                        break;
+                    case "[":
+                        let indPos = bfLoop(i, code, bPos, bytes, inPos, userIn);
+                        if (!indPos) {
+                            return;
+                        }
+                        i = indPos["ind"];
+                        bPos = indPos["bPos"];
+                        inPos = indPos["inPos"];
+                        break;
+                    case "]":
+                        if (bytes[bPos]) {
+                            i = beg;
+                        }
+                        else {
+                            return {
+                                "ind": i,
+                                "bPos": bPos,
+                                "inPos": inPos
+                            };
+                        }
+                }
+
+                //console.log(code[i]);
+                //console.log(bytes);
+            }
+        }
+
+        compileCode.onclick = function() {
+
+            outputBF.value = "";
+
+            let bfCode = inputBF.value.split("");
+            let bfBytes = [0];
+            let bfPos = 0;
+
+            let bfOut = [];
+
+            let userIn = inputUser.value.split("");
+
+            let inPos = 0;
+
+            for (let i = 0; i < bfCode.length; i++) {
+
+                switch (bfCode[i]) {
+
+                    case "<":
+                        if (bfPos) {
+                            bfPos--;
+                        }
+                        else {
+                            console.log("Pos can't be under 0...");
+                        }
+                        break;
+                    case ">":
+                        bfPos++;
+                        if (bfPos === bfBytes.length) {
+                            bfBytes.push(0);
+                        }
+                        break;
+                    case "+":
+                        bfBytes[bfPos]++;
+                        bfBytes[bfPos] %= 256;
+                        break;
+                    case "-":
+                        if (bfBytes[bfPos]) {
+                            bfBytes[bfPos]--;
+                        }
+                        else {
+                            bfBytes[bfPos] = 255;
+                        }
+                        break;
+                    case ".":
+                        bfOut.push(String.fromCharCode(bfBytes[bfPos]));
+                        break;
+                    case ",":
+                        if (inPos === userIn.length) {
+                            console.log("Not enough inputs...");
+                            return;
+                        }
+                        bfBytes[bfPos] = userIn[inPos].charCodeAt(0);
+                        inPos++;
+                        break;
+                    case "[":
+                        let bfIndPos = bfLoop(i, bfCode, bfPos, bfBytes, bfOut, inPos, userIn);
+
+                        if (!bfIndPos) {
+                            return;
+                        }
+                        
+                        i = bfIndPos["ind"];
+                        bfPos = bfIndPos["bPos"];
+                        inPos = bfIndPos["inPos"];
+                        break;
+                }
+
+                //console.log(bfCode[i]);
+                //console.log(bfBytes);
+            }
+
+            outputBF.value = bfOut.join("");
+        };
+
+    </script>
+</body>
+</html>
